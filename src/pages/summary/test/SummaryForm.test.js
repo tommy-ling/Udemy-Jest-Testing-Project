@@ -1,5 +1,10 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitForElementToBeRemoved,
+} from "@testing-library/react";
 import SummaryForm from "../SummaryForm";
+import userEvent from "@testing-library/user-event";
 
 test("checkbox unchecked by default", () => {
   render(<SummaryForm />);
@@ -19,9 +24,27 @@ test("checking checkbox enables button and checking again disables it", () => {
   });
   const button = screen.getByRole("button", { name: "Confirm Order" });
 
-  fireEvent.click(checkbox);
+  userEvent.click(checkbox);
   expect(button).toBeEnabled();
 
-  fireEvent.click(checkbox);
+  userEvent.click(checkbox);
   expect(button).toBeDisabled();
+});
+
+test("popover response to hover", async () => {
+  render(<SummaryForm />);
+  const nullPopover = screen.queryByText(
+    "No ice cream will actually be delivered"
+  );
+  expect(nullPopover).not.toBeInTheDocument();
+
+  const termsAndConditions = screen.getByText("Terms and Conditions");
+  userEvent.hover(termsAndConditions);
+  const popover = screen.getByText("No ice cream will actually be delivered");
+  expect(popover).toBeInTheDocument();
+
+  userEvent.unhover(termsAndConditions);
+  await waitForElementToBeRemoved(() =>
+    screen.queryByText("No ice cream will actually be delivered")
+  );
 });
